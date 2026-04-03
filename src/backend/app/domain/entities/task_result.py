@@ -1,11 +1,11 @@
 from dataclasses import dataclass
-from datetime import datetime
+from uuid import UUID
 
 
 @dataclass
 class TaskResult:
-    id: int
-    task_id: int
+    id: UUID
+    task_id: UUID
     processed_events: int
     anomalies_count: int
     duration: float
