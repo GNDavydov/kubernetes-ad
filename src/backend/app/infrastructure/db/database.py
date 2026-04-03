@@ -1,6 +1,7 @@
 from collections.abc import AsyncIterator
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 
+import app.infrastructure.db.models  # noqa: F401 — register all ORM mappers
 from app.infrastructure.db.models.base import Base
 
 
