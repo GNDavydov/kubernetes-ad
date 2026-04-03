@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import List
+from uuid import UUID
 
 from app.domain.entities.task import Task
 
@@ -8,25 +9,25 @@ from app.domain.entities.task import Task
 class TaskRepository(ABC):
 
     @abstractmethod
-    def add(self, task: Task) -> Task:
+    async def add(self, task: Task) -> Task:
         ...
 
     @abstractmethod
-    def list(self) -> List[Task]:
+    async def list(self) -> List[Task]:
         ...
 
     @abstractmethod
-    def list_by_model(self, model_id: int) -> List[Task]:
+    async def list_by_model(self, model_id: UUID) -> List[Task]:
         ...
 
     @abstractmethod
-    def list_by_integration(self, integration_id: int) -> List[Task]:
+    async def list_by_integration(self, integration_id: UUID) -> List[Task]:
         ...
 
     @abstractmethod
-    def finish(self, task_id: int, finished_at: datetime, started_at: datetime) -> Task | None:
+    async def finish(self, task_id: UUID, finished_at: datetime, started_at: datetime) -> Task | None:
         ...
 
     @abstractmethod
-    def get_by_id(self, task_id: int) -> Task | None:
+    async def get_by_id(self, task_id: UUID) -> Task | None:
         ...

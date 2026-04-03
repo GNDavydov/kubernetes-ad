@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List
+from uuid import UUID
 
 from app.domain.entities.model import Model
 
@@ -7,21 +8,21 @@ from app.domain.entities.model import Model
 class ModelRepository(ABC):
 
     @abstractmethod
-    def add(self, model: Model) -> Model:
+    async def add(self, model: Model) -> Model:
         ...
 
     @abstractmethod
-    def list(self) -> List[Model]:
+    async def list(self) -> List[Model]:
         ...
 
     @abstractmethod
-    def get_by_id(self, model_id: int) -> Model | None:
+    async def get_by_id(self, model_id: UUID) -> Model | None:
         ...
 
     @abstractmethod
-    def update(self, model: Model) -> Model:
+    async def update(self, model: Model) -> Model:
         ...
 
     @abstractmethod
-    def delete(self, model_id: int) -> None:
+    async def delete(self, model_id: UUID) -> None:
         ...

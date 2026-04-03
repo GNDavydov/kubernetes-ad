@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List
+from uuid import UUID
 
 from app.domain.entities.metric import TrainingMetric
 
@@ -7,17 +8,17 @@ from app.domain.entities.metric import TrainingMetric
 class TrainingMetricRepository(ABC):
 
     @abstractmethod
-    def add(self, metric: TrainingMetric) -> TrainingMetric:
+    async def add(self, metric: TrainingMetric) -> TrainingMetric:
         ...
 
     @abstractmethod
-    def list(self) -> List[TrainingMetric]:
+    async def list(self) -> List[TrainingMetric]:
         ...
 
     @abstractmethod
-    def list_by_model(self, model_id: int) -> List[TrainingMetric]:
+    async def list_by_model(self, model_id: UUID) -> List[TrainingMetric]:
         ...
 
     @abstractmethod
-    def get_by_id(self, metric_id: int) -> TrainingMetric | None:
+    async def get_by_id(self, metric_id: UUID) -> TrainingMetric | None:
         ...
