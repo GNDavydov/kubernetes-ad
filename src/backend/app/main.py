@@ -5,7 +5,13 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 import uvicorn
 
-from app.api.routers import integrations_router, models_router
+from app.api.routers import (
+    integrations_router,
+    metrics_router,
+    models_router,
+    task_results_router,
+    tasks_router,
+)
 from app.application.exceptions import ResourceNotFoundError
 from app.core.settings import get_settings
 from app.infrastructure.db.database import Database
@@ -39,6 +45,9 @@ async def resource_not_found_handler(
 
 app.include_router(integrations_router)
 app.include_router(models_router)
+app.include_router(tasks_router)
+app.include_router(metrics_router)
+app.include_router(task_results_router)
 
 
 if __name__ == "__main__":
