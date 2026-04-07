@@ -4,7 +4,7 @@ from uuid import UUID
 
 
 @dataclass
-class DetectMetrics:
+class DetectMetric:
     id: UUID | None
     task_id: UUID
     processed_events: int
