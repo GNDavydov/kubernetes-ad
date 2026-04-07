@@ -1,15 +1,15 @@
 from abc import ABC, abstractmethod
-from datetime import datetime
 from typing import List
 from uuid import UUID
 
 from app.domain.entities.task import Task
+from app.domain.enums.task_status import TaskStatus
 
 
 class TaskRepository(ABC):
 
     @abstractmethod
-    async def add(self, task: Task) -> Task:
+    async def create(self, task: Task) -> Task:
         ...
 
     @abstractmethod
@@ -25,7 +25,11 @@ class TaskRepository(ABC):
         ...
 
     @abstractmethod
-    async def finish(self, task_id: UUID, finished_at: datetime, started_at: datetime) -> Task | None:
+    async def update(self, task: Task) -> Task:
+        ...
+
+    @abstractmethod
+    async def update_status(self, task_id: UUID, status: TaskStatus) -> Task | None:
         ...
 
     @abstractmethod

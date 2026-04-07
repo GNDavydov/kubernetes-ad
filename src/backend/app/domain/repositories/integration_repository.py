@@ -8,7 +8,7 @@ from app.domain.entities.integration import Integration
 class IntegrationRepository(ABC):
 
     @abstractmethod
-    async def add(self, integration: Integration) -> Integration:
+    async def create(self, integration: Integration) -> Integration:
         ...
 
     @abstractmethod
@@ -25,4 +25,8 @@ class IntegrationRepository(ABC):
 
     @abstractmethod
     async def delete(self, integration_id: UUID) -> None:
+        ...
+
+    @abstractmethod
+    async def list_by_user(self, user_id: UUID) -> List[Integration]:
         ...
