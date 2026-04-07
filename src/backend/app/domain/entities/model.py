@@ -7,12 +7,12 @@ from app.domain.enums.model_status import ModelStatus
 
 @dataclass
 class Model:
-    id: UUID
+    id: UUID | None
+    user_id: UUID
     name: str
     status: ModelStatus
-    input_dim: int
     seq_len: int
     threshold: float
     model_path: str
-    last_processed_at: datetime
-    created_at: datetime
+    last_processed_at: datetime | None
+    created_at: datetime | None

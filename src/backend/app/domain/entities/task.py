@@ -8,12 +8,10 @@ from app.domain.enums.task_type import TaskType
 
 @dataclass
 class Task:
-    id: UUID
-    type: TaskType
-    status: TaskStatus
+    id: UUID | None
     model_id: UUID
     integration_id: UUID
-    error: str
-    created_at: datetime
-    started_at: datetime
-    finished_at: datetime
+    type: TaskType
+    status: TaskStatus
+    epochs: int
+    created_at: datetime | None
