@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from typing import List
 from uuid import UUID
 
@@ -14,14 +15,15 @@ class IntegrationRepositoryImpl(IntegrationRepository):
     def __init__(self, db: AsyncSession) -> None:
         self.db = db
 
-    async def add(self, integration: Integration) -> Integration:
+    async def create(self, integration: Integration) -> Integration:
         db_integration = IntegrationModel(
+            user_id=integration.user_id,
             name=integration.name,
             url=integration.url,
             username=integration.username,
             password=integration.password,
             index_name=integration.index_name,
-            created_at=integration.created_at
+            created_at=integration.created_at or datetime.now(timezone.utc),
         )
         self.db.add(db_integration)
         await self.db.commit()
@@ -37,11 +39,21 @@ class IntegrationRepositoryImpl(IntegrationRepository):
         db_integration = await self.db.get(IntegrationModel, integration_id)
         return self._to_entity(db_integration) if db_integration else None
 
+    async def list_by_user(self, user_id: UUID) -> List[Integration]:
+        result = await self.db.execute(
+            select(IntegrationModel).where(IntegrationModel.user_id == user_id)
+        )
+        db_integrations = result.scalars().all()
+        return [self._to_entity(db_integration) for db_integration in db_integrations]
+
     async def update(self, integration: Integration) -> Integration:
+        if integration.id is None:
+            raise ValueError("Integration id is required for update")
         db_integration = await self.db.get(IntegrationModel, integration.id)
         if db_integration is None:
             raise ValueError(f"Integration with id={integration.id} not found")
 
+        db_integration.user_id = integration.user_id
         db_integration.name = integration.name
         db_integration.url = integration.url
         db_integration.username = integration.username
@@ -61,6 +73,7 @@ class IntegrationRepositoryImpl(IntegrationRepository):
     def _to_entity(db_integration: IntegrationModel) -> Integration:
         return Integration(
             id=db_integration.id,
+            user_id=db_integration.user_id,
             name=db_integration.name,
             url=db_integration.url,
             username=db_integration.username,
