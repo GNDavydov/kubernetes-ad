@@ -8,7 +8,7 @@ from app.domain.enums.role import Role
 @dataclass
 class User:
     id: UUID | None
-    email: UUID
+    email: str
     password: str
     role: Role
     created_at: datetime | None

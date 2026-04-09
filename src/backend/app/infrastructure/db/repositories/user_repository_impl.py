@@ -36,6 +36,11 @@ class UserRepositoryImpl(UserRepository):
         db_user = await self.db.get(UserModel, user_id)
         return self._to_entity(db_user) if db_user else None
 
+    async def get_by_email(self, email: str) -> User | None:
+        result = await self.db.execute(select(UserModel).where(UserModel.email == email))
+        db_user = result.scalars().first()
+        return self._to_entity(db_user) if db_user else None
+
     async def update(self, user: User) -> User:
         if user.id is None:
             raise ValueError("User id is required for update")
@@ -63,7 +68,7 @@ class UserRepositoryImpl(UserRepository):
         db_user = await self.db.get(UserModel, user_id)
         if db_user is None:
             return None
-        db_user.email = UUID(email)
+        db_user.email = email
         await self.db.commit()
         await self.db.refresh(db_user)
         return self._to_entity(db_user)
