@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     admin_email: str = "admin@example.com"
     admin_password: str = "admin12345"
 
+    redis_blacklist_url: str = "redis://localhost:6379/2"
+    redis_blacklist_key_prefix: str = "auth:blacklist:"
+
     celery_broker_url: str = "redis://localhost:6379/0"
     celery_result_backend: str = "redis://localhost:6379/1"
 
