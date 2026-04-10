@@ -20,11 +20,14 @@ class AuthenticateUserUseCase:
         if user is None:
             raise AuthenticationError("Invalid email or password")
 
-        is_password_valid = self._password_hasher.verify_password(password, user.password)
+        is_password_valid = self._password_hasher.verify_password(
+            password, user.password)
         if not is_password_valid:
             raise AuthenticationError("Invalid email or password")
 
         return self._token_service.create_access_token(
-            subject=str(user.id),
+            user_id=user.id,
+            email=user.email,
             role=user.role,
+            created_at=user.created_at,
         )
