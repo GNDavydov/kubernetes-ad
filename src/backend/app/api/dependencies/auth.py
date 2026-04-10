@@ -1,9 +1,8 @@
-from uuid import UUID
-
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import Depends, Request
 from fastapi.security import OAuth2PasswordBearer
 
 from app.api.dependencies.common import get_user_repository
+from app.application.exceptions import AuthenticationError, AuthorizationError
 from app.application.use_cases.authenticate_user import AuthenticateUserUseCase
 from app.domain.entities.access_token_payload import AccessTokenPayload
 from app.domain.entities.user import User
@@ -46,10 +45,8 @@ async def get_current_token_payload(
     token_service: TokenService = Depends(get_token_service),
     token_blacklist: TokenBlacklist = Depends(get_token_blacklist),
 ) -> AccessTokenPayload:
-    unauthorized_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-    )
+    unauthorized_exception = AuthenticationError(
+        "Could not validate credentials")
 
     try:
         payload = token_service.decode_access_token(token)
@@ -77,8 +74,5 @@ async def get_current_user(
 
 async def require_admin(current_user: User = Depends(get_current_user)) -> User:
     if current_user.role != Role.ADMIN:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin role is required",
-        )
+        raise AuthorizationError("Admin role is required")
     return current_user
