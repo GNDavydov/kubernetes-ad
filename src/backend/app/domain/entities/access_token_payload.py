@@ -1,11 +1,15 @@
 from dataclasses import dataclass
 from datetime import datetime
+from uuid import UUID
 
 from app.domain.enums.role import Role
 
 
 @dataclass
 class AccessTokenPayload:
-    sub: str
+    user_id: UUID
+    email: str
     role: Role
-    exp: datetime | int
+    created_at: datetime | None
+    jti: str
+    exp: int

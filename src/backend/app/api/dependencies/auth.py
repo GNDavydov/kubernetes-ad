@@ -5,11 +5,13 @@ from fastapi.security import OAuth2PasswordBearer
 
 from app.api.dependencies.common import get_user_repository
 from app.application.use_cases.authenticate_user import AuthenticateUserUseCase
+from app.domain.entities.access_token_payload import AccessTokenPayload
 from app.domain.entities.user import User
 from app.domain.enums.role import Role
-from app.domain.repositories.user_repository import UserRepository
+from app.domain.interfaces.token_blacklist import TokenBlacklist
 from app.domain.interfaces.token_service import TokenService
 from app.domain.interfaces.password_hasher import PasswordHasher
+from app.domain.repositories.user_repository import UserRepository
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
@@ -21,6 +23,10 @@ def get_password_hasher(request: Request) -> PasswordHasher:
 
 def get_token_service(request: Request) -> TokenService:
     return request.app.state.token_service
+
+
+def get_token_blacklist(request: Request) -> TokenBlacklist:
+    return request.app.state.token_blacklist
 
 
 def get_authenticate_user_use_case(
@@ -35,14 +41,14 @@ def get_authenticate_user_use_case(
     )
 
 
-async def get_current_user(
+async def get_current_token_payload(
     token: str = Depends(oauth2_scheme),
     token_service: TokenService = Depends(get_token_service),
-    user_repository: UserRepository = Depends(get_user_repository),
-) -> User:
+    token_blacklist: TokenBlacklist = Depends(get_token_blacklist),
+) -> AccessTokenPayload:
     unauthorized_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials"
+        detail="Could not validate credentials",
     )
 
     try:
@@ -50,20 +56,23 @@ async def get_current_user(
     except Exception as exc:
         raise unauthorized_exception from exc
 
-    subject = payload.sub
-    if not subject:
+    is_revoked = await token_blacklist.is_revoked(payload.jti)
+    if is_revoked:
         raise unauthorized_exception
 
-    try:
-        user_id = UUID(subject)
-    except ValueError as exc:
-        raise unauthorized_exception from exc
+    return payload
 
-    user = await user_repository.get_by_id(user_id)
-    if user is None:
-        raise unauthorized_exception
 
-    return user
+async def get_current_user(
+    payload: AccessTokenPayload = Depends(get_current_token_payload),
+) -> User:
+    return User(
+        id=payload.user_id,
+        email=payload.email,
+        password="",
+        role=payload.role,
+        created_at=payload.created_at,
+    )
 
 
 async def require_admin(current_user: User = Depends(get_current_user)) -> User:
