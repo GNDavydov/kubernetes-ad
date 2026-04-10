@@ -13,6 +13,13 @@ class Settings(BaseSettings):
     db_pool_size: int = 10
     db_max_overflow: int = 20
 
+    jwt_secret_key: str = "change-me-please-use-at-least-32-chars"
+    jwt_algorithm: str = "HS256"
+    jwt_access_token_expire_minutes: int = 60
+
+    admin_email: str = "admin@example.com"
+    admin_password: str = "admin12345"
+
     celery_broker_url: str = "redis://localhost:6379/0"
     celery_result_backend: str = "redis://localhost:6379/1"
 
