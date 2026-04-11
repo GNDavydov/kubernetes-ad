@@ -22,6 +22,9 @@ class TaskModel(Base):
     integration_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("integrations.id", ondelete="CASCADE"), nullable=False
     )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
     type: Mapped[TaskType] = mapped_column(
         Enum(TaskType, name="task_type_enum"),
         nullable=False,
@@ -30,7 +33,7 @@ class TaskModel(Base):
         Enum(TaskStatus, name="task_status_enum"),
         nullable=False,
     )
-    epochs: Mapped[int] = mapped_column(Integer, nullable=False)
+    epochs: Mapped[int | None] = mapped_column(Integer, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP, default=datetime.now(timezone.utc)
     )

@@ -11,7 +11,8 @@ class Task:
     id: UUID | None
     model_id: UUID
     integration_id: UUID
+    user_id: UUID
     type: TaskType
     status: TaskStatus
-    epochs: int
+    epochs: int | None
     created_at: datetime | None

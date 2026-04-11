@@ -25,6 +25,10 @@ class TaskRepository(ABC):
         ...
 
     @abstractmethod
+    async def list_by_user(self, user_id: UUID) -> List[Task]:
+        ...
+
+    @abstractmethod
     async def update(self, task: Task) -> Task:
         ...
 

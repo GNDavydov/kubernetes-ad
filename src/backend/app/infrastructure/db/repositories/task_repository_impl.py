@@ -19,6 +19,7 @@ class TaskRepositoryImpl(TaskRepository):
         db_task = TaskModel(
             model_id=task.model_id,
             integration_id=task.integration_id,
+            user_id=task.user_id,
             type=task.type,
             status=task.status,
             created_at=task.created_at or datetime.now(timezone.utc),
@@ -48,6 +49,13 @@ class TaskRepositoryImpl(TaskRepository):
         db_tasks = result.scalars().all()
         return [self._to_entity(db_task) for db_task in db_tasks]
 
+    async def list_by_user(self, user_id: UUID) -> List[Task]:
+        result = await self.db.execute(
+            select(TaskModel).where(TaskModel.user_id == user_id)
+        )
+        db_tasks = result.scalars().all()
+        return [self._to_entity(db_task) for db_task in db_tasks]
+
     async def update(self, task: Task) -> Task:
         if task.id is None:
             raise ValueError("Task id is required for update")
@@ -57,6 +65,7 @@ class TaskRepositoryImpl(TaskRepository):
 
         db_task.model_id = task.model_id
         db_task.integration_id = task.integration_id
+        db_task.user_id = task.user_id
         db_task.type = task.type
         db_task.status = task.status
         db_task.epochs = task.epochs
@@ -84,6 +93,7 @@ class TaskRepositoryImpl(TaskRepository):
             id=db_task.id,
             model_id=db_task.model_id,
             integration_id=db_task.integration_id,
+            user_id=db_task.user_id,
             type=db_task.type,
             status=db_task.status,
             epochs=db_task.epochs,
