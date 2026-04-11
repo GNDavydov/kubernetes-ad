@@ -3,8 +3,12 @@ from collections.abc import AsyncIterator
 from fastapi import Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.domain.repositories.integration_repository import IntegrationRepository
+from app.domain.repositories.model_repository import ModelRepository
 from app.domain.repositories.user_repository import UserRepository
 from app.infrastructure.db.database import Database
+from app.infrastructure.db.repositories.integration_repository_impl import IntegrationRepositoryImpl
+from app.infrastructure.db.repositories.model_repository_impl import ModelRepositoryImpl
 from app.infrastructure.db.repositories.user_repository_impl import UserRepositoryImpl
 
 
@@ -25,3 +29,13 @@ def get_user_repository(
     return UserRepositoryImpl(db)
 
 
+def get_model_repository(
+    db: AsyncSession = Depends(get_db_session),
+) -> ModelRepository:
+    return ModelRepositoryImpl(db)
+
+
+def get_integration_repository(
+    db: AsyncSession = Depends(get_db_session),
+) -> IntegrationRepository:
+    return IntegrationRepositoryImpl(db)

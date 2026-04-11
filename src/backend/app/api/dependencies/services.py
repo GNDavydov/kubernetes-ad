@@ -1,8 +1,16 @@
 from fastapi import Depends
 
-from app.api.dependencies.common import get_user_repository
+from app.api.dependencies.common import (
+    get_integration_repository,
+    get_model_repository,
+    get_user_repository,
+)
 from app.api.dependencies.auth import get_password_hasher
+from app.application.services.integration_service import IntegrationService
+from app.application.services.model_service import ModelService
 from app.application.services.user_service import UserService
+from app.domain.repositories.integration_repository import IntegrationRepository
+from app.domain.repositories.model_repository import ModelRepository
 from app.domain.repositories.user_repository import UserRepository
 from app.domain.interfaces.password_hasher import PasswordHasher
 
@@ -15,3 +23,15 @@ def get_user_service(
         user_repository=user_repository,
         password_hasher=password_hasher
     )
+
+
+def get_model_service(
+    model_repository: ModelRepository = Depends(get_model_repository),
+) -> ModelService:
+    return ModelService(model_repository=model_repository)
+
+
+def get_integration_service(
+    integration_repository: IntegrationRepository = Depends(get_integration_repository),
+) -> IntegrationService:
+    return IntegrationService(integration_repository=integration_repository)

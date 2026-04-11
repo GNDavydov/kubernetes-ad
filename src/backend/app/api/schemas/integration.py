@@ -1,26 +1,18 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
 
 
-class IntegrationCreateSchema(BaseModel):
+class CreateIntegrationRequest(BaseModel):
     name: str
     url: str
-    username: str
-    password: str
+    username: str | None = None
+    password: str | None = None
     index_name: str
 
 
-class IntegrationPutSchema(BaseModel):
-    name: str
-    url: str
-    username: str
-    password: str
-    index_name: str
-
-
-class IntegrationPatchSchema(BaseModel):
+class UpdateIntegrationRequest(BaseModel):
     name: str | None = None
     url: str | None = None
     username: str | None = None
@@ -28,12 +20,11 @@ class IntegrationPatchSchema(BaseModel):
     index_name: str | None = None
 
 
-class IntegrationReadSchema(BaseModel):
+class IntegrationResponse(BaseModel):
     id: UUID
+    user_id: UUID
     name: str
     url: str
-    username: str
+    username: str | None
     index_name: str
-    created_at: datetime
-
-    model_config = ConfigDict(from_attributes=True)
+    created_at: datetime | None

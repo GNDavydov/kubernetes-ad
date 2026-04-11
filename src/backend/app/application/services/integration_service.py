@@ -1,5 +1,3 @@
-from datetime import datetime, timezone
-from typing import Any, List
 from uuid import UUID
 
 from app.application.exceptions import ResourceNotFoundError
@@ -8,83 +6,73 @@ from app.domain.repositories.integration_repository import IntegrationRepository
 
 
 class IntegrationService:
-    def __init__(self, repository: IntegrationRepository) -> None:
-        self._repository = repository
+    def __init__(self, integration_repository: IntegrationRepository) -> None:
+        self._integration_repository = integration_repository
 
     async def create(
         self,
+        user_id: UUID,
         name: str,
         url: str,
-        username: str,
-        password: str,
+        username: str | None,
+        password: str | None,
         index_name: str,
     ) -> Integration:
-        entity = Integration(
+        integration = Integration(
             id=None,
+            user_id=user_id,
             name=name,
             url=url,
             username=username,
             password=password,
             index_name=index_name,
-            created_at=datetime.now(timezone.utc),
+            created_at=None,
         )
-        return await self._repository.add(entity)
+        return await self._integration_repository.create(integration)
 
-    async def list_all(self) -> List[Integration]:
-        return await self._repository.list()
+    async def list_my(self, user_id: UUID) -> list[Integration]:
+        return await self._integration_repository.list_by_user(user_id)
 
-    async def get(self, integration_id: UUID) -> Integration:
-        integration = await self._repository.get_by_id(integration_id)
-        if integration is None:
+    async def get_my_by_id(self, user_id: UUID, integration_id: UUID) -> Integration:
+        integration = await self._integration_repository.get_by_id(integration_id)
+        if integration is None or integration.user_id != user_id:
             raise ResourceNotFoundError("Integration not found")
         return integration
 
-    async def replace(
+    async def update_my(
         self,
+        user_id: UUID,
         integration_id: UUID,
-        name: str,
-        url: str,
-        username: str,
-        password: str,
-        index_name: str,
+        name: str | None = None,
+        url: str | None = None,
+        username: str | None = None,
+        password: str | None = None,
+        index_name: str | None = None,
     ) -> Integration:
-        current = await self._repository.get_by_id(integration_id)
-        if current is None:
-            raise ResourceNotFoundError("Integration not found")
-
-        entity = Integration(
-            id=integration_id,
-            name=name,
-            url=url,
-            username=username,
-            password=password,
-            index_name=index_name,
-            created_at=current.created_at,
-        )
-        return await self._repository.update(entity)
-
-    async def partial_update(self, integration_id: UUID, patch: dict[str, Any]) -> Integration:
-        current = await self._repository.get_by_id(integration_id)
-        if current is None:
-            raise ResourceNotFoundError("Integration not found")
-
-        entity = Integration(
-            id=integration_id,
-            name=patch.get("name", current.name),
-            url=patch.get("url", current.url),
-            username=patch.get("username", current.username),
-            password=patch.get("password", current.password),
-            index_name=patch.get("index_name", current.index_name),
-            created_at=current.created_at,
+        existing_integration = await self.get_my_by_id(
+            user_id=user_id,
+            integration_id=integration_id,
         )
 
-        try:
-            return await self._repository.update(entity)
-        except ValueError as exc:
-            raise ResourceNotFoundError("Integration not found") from exc
-
-    async def delete(self, integration_id: UUID) -> None:
-        current = await self._repository.get_by_id(integration_id)
-        if current is None:
+        if existing_integration is None:
             raise ResourceNotFoundError("Integration not found")
-        await self._repository.delete(integration_id)
+
+        updated_integration = Integration(
+            id=existing_integration.id,
+            user_id=existing_integration.user_id,
+            name=name if name is not None else existing_integration.name,
+            url=url if url is not None else existing_integration.url,
+            username=username if username is not None else existing_integration.username,
+            password=password if password is not None else existing_integration.password,
+            index_name=index_name if index_name is not None else existing_integration.index_name,
+            created_at=existing_integration.created_at,
+        )
+
+        updated = await self._integration_repository.update(updated_integration)
+        if updated is None:
+            raise ResourceNotFoundError("Integration not found")
+        return updated
+
+    async def delete_my(self, user_id: UUID, integration_id: UUID) -> None:
+        _ = await self.get_my_by_id(user_id=user_id, integration_id=integration_id)
+        await self._integration_repository.delete(integration_id)
