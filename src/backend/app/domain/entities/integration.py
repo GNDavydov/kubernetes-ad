@@ -11,5 +11,6 @@ class Integration:
     url: str
     username: str | None
     password: str | None
-    index_name: str
+    log_source_name: str
+    anomaly_name: str
     created_at: datetime | None

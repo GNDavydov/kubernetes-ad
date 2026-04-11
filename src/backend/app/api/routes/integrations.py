@@ -24,7 +24,8 @@ def _to_response(integration: Integration) -> IntegrationResponse:
         name=integration.name,
         url=integration.url,
         username=integration.username,
-        index_name=integration.index_name,
+        log_source_name=integration.log_source_name,
+        anomaly_name=integration.anomaly_name,
         created_at=integration.created_at,
     )
 
@@ -41,7 +42,8 @@ async def create_integration(
         url=request.url,
         username=request.username,
         password=request.password,
-        index_name=request.index_name,
+        log_source_name=request.log_source_name,
+        anomaly_name=request.anomaly_name,
     )
     return _to_response(integration)
 
@@ -82,7 +84,8 @@ async def update_integration(
         url=request.url,
         username=request.username,
         password=request.password,
-        index_name=request.index_name,
+        log_source_name=request.log_source_name,
+        anomaly_name=request.anomaly_name,
     )
     return _to_response(integration)
 

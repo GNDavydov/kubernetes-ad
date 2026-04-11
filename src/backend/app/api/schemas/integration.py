@@ -9,7 +9,8 @@ class CreateIntegrationRequest(BaseModel):
     url: str
     username: str | None = None
     password: str | None = None
-    index_name: str
+    log_source_name: str
+    anomaly_name: str
 
 
 class UpdateIntegrationRequest(BaseModel):
@@ -17,7 +18,8 @@ class UpdateIntegrationRequest(BaseModel):
     url: str | None = None
     username: str | None = None
     password: str | None = None
-    index_name: str | None = None
+    log_source_name: str | None = None
+    anomaly_name: str | None = None
 
 
 class IntegrationResponse(BaseModel):
@@ -26,5 +28,6 @@ class IntegrationResponse(BaseModel):
     name: str
     url: str
     username: str | None
-    index_name: str
+    log_source_name: str
+    anomaly_name: str
     created_at: datetime | None

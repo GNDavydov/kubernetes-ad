@@ -21,7 +21,8 @@ class IntegrationModel(Base):
     url: Mapped[str] = mapped_column(Text, nullable=False)
     username: Mapped[str | None] = mapped_column(String, nullable=True)
     password: Mapped[str | None] = mapped_column(String, nullable=True)
-    index_name: Mapped[str] = mapped_column(Text, nullable=False)
+    log_source_name: Mapped[str] = mapped_column(Text, nullable=False)
+    anomaly_name: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP, default=datetime.now(timezone.utc)
     )

@@ -22,7 +22,8 @@ class IntegrationRepositoryImpl(IntegrationRepository):
             url=integration.url,
             username=integration.username,
             password=integration.password,
-            index_name=integration.index_name,
+            log_source_name=integration.log_source_name,
+            anomaly_name=integration.anomaly_name,
             created_at=integration.created_at or datetime.now(timezone.utc),
         )
         self.db.add(db_integration)
@@ -58,7 +59,8 @@ class IntegrationRepositoryImpl(IntegrationRepository):
         db_integration.url = integration.url
         db_integration.username = integration.username
         db_integration.password = integration.password
-        db_integration.index_name = integration.index_name
+        db_integration.log_source_name = integration.log_source_name
+        db_integration.anomaly_name = integration.anomaly_name
         await self.db.commit()
         await self.db.refresh(db_integration)
         return self._to_entity(db_integration)
@@ -78,6 +80,7 @@ class IntegrationRepositoryImpl(IntegrationRepository):
             url=db_integration.url,
             username=db_integration.username,
             password=db_integration.password,
-            index_name=db_integration.index_name,
+            log_source_name=db_integration.log_source_name,
+            anomaly_name=db_integration.anomaly_name,
             created_at=db_integration.created_at
         )

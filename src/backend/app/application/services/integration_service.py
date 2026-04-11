@@ -16,7 +16,8 @@ class IntegrationService:
         url: str,
         username: str | None,
         password: str | None,
-        index_name: str,
+        log_source_name: str,
+        anomaly_name: str,
     ) -> Integration:
         integration = Integration(
             id=None,
@@ -25,7 +26,8 @@ class IntegrationService:
             url=url,
             username=username,
             password=password,
-            index_name=index_name,
+            log_source_name=log_source_name,
+            anomaly_name=anomaly_name,
             created_at=None,
         )
         return await self._integration_repository.create(integration)
@@ -47,7 +49,8 @@ class IntegrationService:
         url: str | None = None,
         username: str | None = None,
         password: str | None = None,
-        index_name: str | None = None,
+        log_source_name: str | None = None,
+        anomaly_name: str | None = None,
     ) -> Integration:
         existing_integration = await self.get_my_by_id(
             user_id=user_id,
@@ -64,7 +67,8 @@ class IntegrationService:
             url=url if url is not None else existing_integration.url,
             username=username if username is not None else existing_integration.username,
             password=password if password is not None else existing_integration.password,
-            index_name=index_name if index_name is not None else existing_integration.index_name,
+            log_source_name=log_source_name if log_source_name is not None else existing_integration.log_source_name,
+            anomaly_name=anomaly_name if anomaly_name is not None else existing_integration.anomaly_name,
             created_at=existing_integration.created_at,
         )
 
