@@ -3,14 +3,18 @@ from collections.abc import AsyncIterator
 from fastapi import Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.domain.repositories.detect_metric_repository import DetectMetricRepository
 from app.domain.repositories.integration_repository import IntegrationRepository
 from app.domain.repositories.model_repository import ModelRepository
 from app.domain.repositories.task_repository import TaskRepository
+from app.domain.repositories.train_metric_repository import TrainMetricRepository
 from app.domain.repositories.user_repository import UserRepository
 from app.infrastructure.db.database import Database
+from app.infrastructure.db.repositories.detect_metric_repository_impl import DetectMetricRepositoryImpl
 from app.infrastructure.db.repositories.integration_repository_impl import IntegrationRepositoryImpl
 from app.infrastructure.db.repositories.model_repository_impl import ModelRepositoryImpl
 from app.infrastructure.db.repositories.task_repository_impl import TaskRepositoryImpl
+from app.infrastructure.db.repositories.train_metric_repository_impl import TrainMetricRepositoryImpl
 from app.infrastructure.db.repositories.user_repository_impl import UserRepositoryImpl
 
 
@@ -47,3 +51,15 @@ def get_task_repository(
     db: AsyncSession = Depends(get_db_session),
 ) -> TaskRepository:
     return TaskRepositoryImpl(db)
+
+
+def get_train_metric_repository(
+    db: AsyncSession = Depends(get_db_session),
+) -> TrainMetricRepository:
+    return TrainMetricRepositoryImpl(db)
+
+
+def get_detect_metric_repository(
+    db: AsyncSession = Depends(get_db_session),
+) -> DetectMetricRepository:
+    return DetectMetricRepositoryImpl(db)

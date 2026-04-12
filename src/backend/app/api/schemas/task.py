@@ -31,3 +31,25 @@ class TaskResponse(BaseModel):
     status: TaskStatus
     epochs: int | None
     created_at: datetime | None
+
+
+class TrainMetricResponse(BaseModel):
+    id: UUID
+    task_id: UUID
+    processed_events: int
+    epoch: int
+    loss: float
+    val_loss: float
+    duration: float
+    created_at: datetime | None
+
+
+class DetectMetricResponse(BaseModel):
+    id: UUID
+    task_id: UUID
+    processed_events: int
+    anomalies_count: int
+    duration: float
+    created_at: datetime | None
+    start_timestamp: datetime
+    end_timestamp: datetime
