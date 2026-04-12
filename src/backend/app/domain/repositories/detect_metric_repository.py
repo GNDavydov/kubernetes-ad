@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List
 from uuid import UUID
 
-from backend.app.domain.entities.detect_metric import DetectMetric
+from app.domain.entities.detect_metric import DetectMetric
 
 
 class DetectMetricRepository(ABC):

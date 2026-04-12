@@ -3,8 +3,8 @@ from typing import Protocol
 
 
 class TaskQueue(Protocol):
-    def detect_task(model_id: UUID, integration_id: UUID) -> None:
+    def detect_task(task_id: UUID) -> None:
         ...
 
-    def train_task(model_id: UUID, integration_id: UUID) -> None:
+    def train_task(task_id: UUID) -> None:
         ...

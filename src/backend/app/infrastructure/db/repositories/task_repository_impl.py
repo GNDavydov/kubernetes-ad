@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.entities.task import Task
 from app.domain.enums.task_status import TaskStatus
+from app.domain.enums.task_type import TaskType
 from app.domain.repositories.task_repository import TaskRepository
 from app.infrastructure.db.models.task import TaskModel
 
@@ -52,6 +53,27 @@ class TaskRepositoryImpl(TaskRepository):
     async def list_by_user(self, user_id: UUID) -> List[Task]:
         result = await self.db.execute(
             select(TaskModel).where(TaskModel.user_id == user_id)
+        )
+        db_tasks = result.scalars().all()
+        return [self._to_entity(db_task) for db_task in db_tasks]
+
+    async def list_by_status(self, status: TaskStatus) -> List[Task]:
+        result = await self.db.execute(
+            select(TaskModel).where(TaskModel.status == status)
+        )
+        db_tasks = result.scalars().all()
+        return [self._to_entity(db_task) for db_task in db_tasks]
+
+    async def list_by_status_and_type(
+        self,
+        status: TaskStatus,
+        type: TaskType,
+    ) -> List[Task]:
+        result = await self.db.execute(
+            select(TaskModel).where(
+                TaskModel.status == status,
+                TaskModel.type == type,
+            )
         )
         db_tasks = result.scalars().all()
         return [self._to_entity(db_task) for db_task in db_tasks]

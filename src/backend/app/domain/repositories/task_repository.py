@@ -4,6 +4,7 @@ from uuid import UUID
 
 from app.domain.entities.task import Task
 from app.domain.enums.task_status import TaskStatus
+from app.domain.enums.task_type import TaskType
 
 
 class TaskRepository(ABC):
@@ -26,6 +27,18 @@ class TaskRepository(ABC):
 
     @abstractmethod
     async def list_by_user(self, user_id: UUID) -> List[Task]:
+        ...
+
+    @abstractmethod
+    async def list_by_status(self, status: TaskStatus) -> List[Task]:
+        ...
+
+    @abstractmethod
+    async def list_by_status_and_type(
+        self,
+        status: TaskStatus,
+        type: TaskType,
+    ) -> List[Task]:
         ...
 
     @abstractmethod
