@@ -1,6 +1,6 @@
 import asyncio
 from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
@@ -14,7 +14,7 @@ from app.api.routes import (
     tasks_router,
     users_router,
 )
-from app.application.use_cases.create_task import UseClassCreateTask
+from app.application.use_cases.create_task import CreateTaskUseCase
 from app.application.use_cases.ensure_admin_exists import EnsureAdminExistsUseCase
 from app.application.exceptions import (
     AuthenticationError,
@@ -25,6 +25,7 @@ from app.application.exceptions import (
 )
 from app.core.settings import get_settings
 from app.infrastructure.db.database import Database
+from app.infrastructure.db.repositories.task_repository_impl import TaskRepositoryImpl
 from app.infrastructure.db.repositories.user_repository_impl import UserRepositoryImpl
 from app.infrastructure.task_queue.celery_app import CeleryTaskQueue
 from app.infrastructure.security.jwt_token_service import JwtTokenService
@@ -61,13 +62,18 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
     await database.init_db()
 
-    # task_queue = CeleryTaskQueue(
-    #     app_name=settings.app_name,
-    #     broker_url=settings.celery_broker_url,
-    #     backend_url=settings.celery_result_backend
-    # )
-    # create_task = UseClassCreateTask(queue=task_queue)
-    # task = asyncio.create_task(create_task.scheduler_loop())
+    task_queue = CeleryTaskQueue(
+        app_name=settings.app_name,
+        broker_url=settings.celery_broker_url,
+        backend_url=settings.celery_result_backend
+    )
+    scheduler_session = database.session_factory()
+    task_repository = TaskRepositoryImpl(scheduler_session)
+    create_task = CreateTaskUseCase(
+        queue=task_queue,
+        task_repository=task_repository,
+    )
+    scheduler_task = asyncio.create_task(create_task.scheduler_loop())
 
     async for session in database.get_db():
         user_repository = UserRepositoryImpl(session)
@@ -82,7 +88,10 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         break
 
     yield
-    # task.cancel()
+    scheduler_task.cancel()
+    with suppress(asyncio.CancelledError):
+        await scheduler_task
+    await scheduler_session.close()
     await token_blacklist.aclose()
     await database.dispose()
 
