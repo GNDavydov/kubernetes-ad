@@ -1,11 +1,11 @@
-from dataclasses import dataclass
-from datetime import datetime
-from typing import Optional
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from typing import Any, Optional
 
 
 @dataclass
 class AuditEvent:
-    timestamp: str
+    timestamp: datetime
     verb: str
     user_username: str
     user_agent: str
@@ -15,14 +15,7 @@ class AuditEvent:
     response_code: Optional[int]
     source_ips: list[str]
 
-    def timestamp_as_datetime(self) -> Optional[datetime]:
-        """Преобразует timestamp в объект даты/времени.
-
-        Returns:
-            `datetime`, если строка корректна, иначе `None`.
-        """
-        try:
-            normalized = self.timestamp.replace("Z", "+00:00")
-            return datetime.fromisoformat(normalized)
-        except Exception:
-            return None
+    def timestamp_as_datetime(self) -> datetime:
+        if self.timestamp.tzinfo is None:
+            return self.timestamp.replace(tzinfo=timezone.utc)
+        return self.timestamp
