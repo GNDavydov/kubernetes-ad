@@ -7,9 +7,6 @@ import torch
 
 
 class NNModel(Protocol):
-    def encode(self, x: torch.Tensor) -> torch.Tensor:
-        ...
-
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         ...
 
