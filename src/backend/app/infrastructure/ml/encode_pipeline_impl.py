@@ -82,11 +82,11 @@ class EncodePipelineImpl(EncodePipeline):
         self.ua_encoder.fit(ua_arr)
         self.is_fit = True
 
-    def transform(self, event: AuditEvent) -> np.ndarray:
+    def transform(self, event: AuditEvent) -> None:
         vec = self._event_to_vector(event)
         if vec is None:
             raise RuntimeError("Событие не прошло валидацию")
-        return vec
+        event.vec = vec
 
     def _event_to_vector(self, event: AuditEvent) -> Optional[np.ndarray]:
         self._clean_event(event)
