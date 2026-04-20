@@ -17,7 +17,7 @@
 
 \begin{figure}
     \centering
-    \includegraphics[scale=0.5]{inc/images/web_ui}
+    \includegraphics[scale=0.2]{inc/images/web_ui}
     \caption{Интерфейс взаимодействия пользователя}
     \label{fig:web_ui}
 \end{figure}
@@ -30,7 +30,7 @@
 
 \begin{figure}
     \centering
-    \includegraphics[scale=0.5]{inc/images/create_integration}
+    \includegraphics[scale=0.2]{inc/images/create_integration}
     \caption{Создание интеграции с OpenSearch}
     \label{fig:create_integration}
 \end{figure}
@@ -41,7 +41,7 @@
 
 \begin{figure}
     \centering
-    \includegraphics[scale=0.5]{inc/images/create_model}
+    \includegraphics[scale=0.2]{inc/images/create_model}
     \caption{Создание модели обнаружения аномалий}
     \label{fig:create_model}
 \end{figure}
@@ -50,7 +50,7 @@
 
 \begin{figure}
     \centering
-    \includegraphics[scale=0.5]{inc/images/start_training}
+    \includegraphics[scale=0.2]{inc/images/start_training}
     \caption{Запуск задачи обучения модели}
     \label{fig:start_training}
 \end{figure}
@@ -59,47 +59,38 @@
 
 \begin{figure}
     \centering
-    \includegraphics[scale=0.5]{inc/images/training_loss_demo}
+    \includegraphics[scale=0.2]{inc/images/training_loss_demo}
     \caption{График функции потерь в процессе обучения модели}
     \label{fig:training_loss_demo}
 \end{figure}
 
-% После завершения обучения веса модели сохраняются во внешнем хранилище, а сама модель переводится в состояние \textit{ready}.
+После завершения обучения веса модели сохраняются во внешнем хранилище, а сама модель переводится в состояние \textit{ready}.
 
-% После обучения модели пользователь может запустить задачу обнаружения аномалий. Процесс аналогичен обучению и также реализуется через очередь задач. Пример запуска задачи детектирования представлен на рисунке~\ref{fig:start_detect}.
+После обучения модели пользователь может запустить задачу обнаружения аномалий. Процесс аналогичен обучению и также реализуется через очередь задач. Пример запуска задачи детектирования представлен на рисунке~\ref{fig:start_detect}.
 
-% \begin{figure}
-%     \centering
-%     \includegraphics[scale=0.5]{inc/images/start_detect}
-%     \caption{Запуск задачи обнаружения аномалий}
-%     \label{fig:start_detect}
-% \end{figure}
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.2]{inc/images/start_detect}
+    \caption{Запуск задачи обнаружения аномалий}
+    \label{fig:start_detect}
+\end{figure}
 
-% Worker-компонент загружает обученную модель, извлекает данные из OpenSearch и выполняет анализ последовательностей событий.
+Worker-компонент загружает обученную модель, извлекает данные из OpenSearch и выполняет анализ последовательностей событий.
 
-% Результатом работы системы являются выявленные аномальные события, которые сохраняются в отдельном индексе OpenSearch, а также агрегированные метрики, записываемые в базу данных. Пример обнаруженных аномалий представлен на рисунке~\ref{fig:anomalies_example}.
+Результатом работы системы являются выявленные аномальные события, которые сохраняются в отдельном индексе OpenSearch, а также агрегированные метрики, записываемые в базу данных. Система предоставляет пользователю информацию о выполненных задачах, включая:
 
-% \begin{figure}
-%     \centering
-%     \includegraphics[scale=0.5]{inc/images/anomalies_example}
-%     \caption{Пример обнаруженных аномальных событий}
-%     \label{fig:anomalies_example}
-% \end{figure}
+\begin{itemize}
+    \item количество обработанных событий;
+    \item число обнаруженных аномалий;
+    \item временные характеристики выполнения задачи;
+    \item метрики качества модели.
+\end{itemize}
 
-% Система предоставляет пользователю информацию о выполненных задачах, включая:
+Пример отображения результатов выполнения задачи представлен на рисунке~\ref{fig:metrics_example}.
 
-% \begin{itemize}
-%     \item количество обработанных событий;
-%     \item число обнаруженных аномалий;
-%     \item временные характеристики выполнения задачи;
-%     \item метрики качества модели.
-% \end{itemize}
-
-% Пример отображения результатов выполнения задачи представлен на рисунке~\ref{fig:metrics_example}.
-
-% \begin{figure}
-%     \centering
-%     \includegraphics[scale=0.5]{inc/images/metrics_example}
-%     \caption{Пример метрик выполнения задачи обнаружения аномалий}
-%     \label{fig:metrics_example}
-% \end{figure}
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.2]{inc/images/metrics_example}
+    \caption{Пример метрик выполнения задачи обнаружения аномалий}
+    \label{fig:metrics_example}
+\end{figure}
