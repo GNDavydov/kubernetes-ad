@@ -1,0 +1,49 @@
+\documentclass[ordinary]{BMSTU-IU8}
+
+\usepackage{todonotes}
+\usepackage{lipsum}
+\usepackage{pdfpages}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{tabularx}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\lstdefinelanguage{yaml}{
+  keywords={true,false,null,y,n},
+  keywordstyle=\color{blue},
+  basicstyle=\ttfamily\small,
+  sensitive=false,
+  comment=[l]{\#},
+  commentstyle=\color{gray}\ttfamily,
+  stringstyle=\color{red}\ttfamily,
+  morestring=[b]',
+  morestring=[b]"
+}
+
+
+\student{Г. Н. Давыдов}
+\theme{Разработка средства обнаружения аномалий в Kubernetes-кластере на основе нейронных сетей}
+\group{ИУ8-121}
+
+\discipline{ВКР}
+\supervisor{О. В. Гудков}
+
+\addbibresource{main.bib}
+
+\begin{document}
+    % \includepdf[pages={1}]{inc/titul.pdf}
+    \setcounter{page}{4}
+
+    \include{contents/1-abstract}
+    \tableofcontents
+    \include{contents/terms}
+    \include{contents/glossary}
+    \termsanddefenitions
+    \listofabbreviations
+    \include{contents/2-introduction}
+    \setcounter{section}{0}
+    \include{contents/3-main}
+    \include{contents/4-conclusion}
+    \printbibliography
+\end{document}
