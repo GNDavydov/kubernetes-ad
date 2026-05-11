@@ -1,4 +1,5 @@
 from functools import lru_cache
+from typing import List
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -27,11 +28,23 @@ class Settings(BaseSettings):
     celery_result_backend: str = "redis://localhost:6379/1"
 
     opensearch_timeout_seconds: int = 30
-    opensearch_verify_ssl: bool = True
-    worker_fetch_size: int = 10000
+    opensearch_verify_ssl: bool = False
+    opensearch_timestamp_field: str = "requestReceivedTimestamp"
+    worker_fetch_size: int = 100000
     detect_default_lookback_minutes: int = 60
     train_batch_size: int = 64
     train_learning_rate: float = 0.001
+    train_val_split_ratio: float = 0.2
+    random_seed: int = 42
+    train_threshold_percentile: float = 99.0
+
+    lstm_hidden_dim: int = 64
+    lstm_latent_dim: int = 32
+    lstm_num_layers: int = 1
+    lstm_dropout: float = 0.0
+
+    # CORS: use ["*"] for dev; restrict in production (comma-separated in env not supported — override in code or extend settings).
+    cors_origins: List[str] = ["*"]
 
     model_config = SettingsConfigDict(
         env_file=".env",

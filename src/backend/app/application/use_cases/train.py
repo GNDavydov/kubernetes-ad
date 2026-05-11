@@ -13,6 +13,7 @@ from app.domain.enums.model_status import ModelStatus
 from app.domain.enums.task_status import TaskStatus
 from app.domain.enums.task_type import TaskType
 from app.domain.interfaces.create_sequences import CreateSequences
+from app.domain.interfaces.encode_pipeline import EncodePipeline
 from app.infrastructure.db.database import Database
 from app.infrastructure.db.repositories.integration_repository_impl import (
     IntegrationRepositoryImpl,
@@ -30,31 +31,65 @@ class TrainUseCase:
     def __init__(
         self,
         database: Database,
+        encode_pipeline: EncodePipeline,
         sequence_pipeline: CreateSequences,
         opensearch_timeout_seconds: int,
         opensearch_verify_ssl: bool,
         opensearch_timestamp_field: str,
-        opensearch_fetch_size: int,
+        fetch_size: int,
         train_batch_size: int,
         train_learning_rate: float,
         train_val_split_ratio: float,
+        random_seed: int,
         train_threshold_percentile: float,
+        lstm_hidden_dim: int,
+        lstm_latent_dim: int,
+        lstm_num_layers: int,
+        lstm_dropout: float,
     ) -> None:
         self._database = database
+        self._encode_pipeline = encode_pipeline
         self._sequence_pipeline = sequence_pipeline
-
         self._opensearch_timeout_seconds = opensearch_timeout_seconds
         self._opensearch_verify_ssl = opensearch_verify_ssl
         self._opensearch_timestamp_field = opensearch_timestamp_field
-        self._opensearch_fetch_size = opensearch_fetch_size
-
+        self._fetch_size = fetch_size
         self._train_batch_size = train_batch_size
         self._train_learning_rate = train_learning_rate
         self._train_val_split_ratio = train_val_split_ratio
+        self._random_seed = random_seed
         self._train_threshold_percentile = train_threshold_percentile
+        self._lstm_hidden_dim = lstm_hidden_dim
+        self._lstm_latent_dim = lstm_latent_dim
+        self._lstm_num_layers = lstm_num_layers
+        self._lstm_dropout = lstm_dropout
 
     def __call__(self, task_id: UUID | str) -> None:
         asyncio.run(self.execute(task_id=task_id))
+
+    def _input_dim(self) -> int:
+        dim = getattr(self._encode_pipeline, "feature_dim", None)
+        if dim is None:
+            raise TypeError(
+                "encode_pipeline must expose `feature_dim` (e.g. EncodePipelineImpl)."
+            )
+        return int(dim)
+
+    @staticmethod
+    def _split_train_val(
+        sequences: np.ndarray,
+        val_ratio: float,
+        seed: int,
+    ) -> tuple[np.ndarray, np.ndarray]:
+        rng = np.random.default_rng(seed)
+        n = len(sequences)
+        if n < 2:
+            return sequences, sequences
+        n_val = min(max(1, int(round(n * val_ratio))), n - 1)
+        perm = rng.permutation(n)
+        val_idx = perm[:n_val]
+        train_idx = perm[n_val:]
+        return sequences[train_idx], sequences[val_idx]
 
     async def execute(self, task_id: UUID | str) -> None:
         task_uuid = UUID(str(task_id))
@@ -78,8 +113,7 @@ class TrainUseCase:
             if task.type != TaskType.TRAIN or task.epochs is None or task.epochs < 1:
                 await task_repository.update_status(task_uuid, TaskStatus.FAILED)
                 await model_repository.update_status(model.id, ModelStatus.FAILED)
-                raise RuntimeError(
-                    "Invalid train task: missing epochs or wrong type.")
+                raise RuntimeError("Invalid train task: missing epochs or wrong type.")
 
             await task_repository.update_status(task_uuid, TaskStatus.RUNNING)
             await model_repository.update_status(model.id, ModelStatus.TRAINING)
@@ -97,31 +131,20 @@ class TrainUseCase:
                     verify_ssl=self._opensearch_verify_ssl,
                     timestamp_field=self._opensearch_timestamp_field,
                 )
-
-                events = provider.fetch_audit_events(
-                    size=self._opensearch_fetch_size)
+                events = provider.fetch_audit_events(size=self._fetch_size)
                 if not events:
                     raise RuntimeError("No audit events fetched for training.")
 
-                sequences = self._sequence_pipeline.transform(
-                    events, model.seq_len)
-                sequences = np.asarray(sequences, dtype=np.float32)
-
-                if sequences.ndim != 3:
-                    raise ValueError(
-                        f"Expected sequences with shape (n, seq_len, feature_dim), got {sequences.shape}"
-                    )
-
+                sequences, _ = self._sequence_pipeline.transform(
+                    events, model.seq_len
+                )
                 processed_events = len(events)
 
                 train_x, val_x = self._split_train_val(
-                    sequences=sequences,
-                    val_split_ratio=self._train_val_split_ratio,
-                    seed=42,
+                    sequences,
+                    self._train_val_split_ratio,
+                    self._random_seed,
                 )
-
-                if len(train_x) == 0:
-                    raise RuntimeError("Not enough sequences for training.")
 
                 train_loader = DataLoader(
                     TensorDataset(torch.from_numpy(train_x).float()),
@@ -134,63 +157,47 @@ class TrainUseCase:
                     shuffle=False,
                 )
 
-                input_dim = sequences.shape[-1]
                 device = torch.device("cpu")
-
-                net: LSTMAutoencoder = LSTMAutoencoder(
-                    input_dim=input_dim,
-                    hidden_dim=64,
-                    latent_dim=32,
-                    num_layers=1,
+                net = LSTMAutoencoder(
+                    input_dim=self._input_dim(),
+                    hidden_dim=self._lstm_hidden_dim,
+                    latent_dim=self._lstm_latent_dim,
+                    num_layers=self._lstm_num_layers,
+                    dropout=self._lstm_dropout,
                 ).to(device)
-
                 optimizer = torch.optim.Adam(
-                    net.parameters(),
-                    lr=self._train_learning_rate,
+                    net.parameters(), lr=self._train_learning_rate
                 )
-                criterion = nn.MSELoss(reduction="mean")
+                criterion = nn.MSELoss()
 
                 for epoch in range(1, task.epochs + 1):
                     t0 = time.perf_counter()
-
                     net.train()
-                    running_loss = 0.0
-                    n_samples = 0
-
-                    for (x,) in train_loader:
-                        x = x.to(device)
-
+                    train_loss_sum = 0.0
+                    train_batches = 0
+                    for (batch,) in train_loader:
+                        batch = batch.to(device)
                         optimizer.zero_grad()
-                        xhat = net(x)
-                        loss = criterion(xhat, x)
+                        recon = net(batch)
+                        loss = criterion(recon, batch)
                         loss.backward()
                         optimizer.step()
-
-                        bs = x.size(0)
-                        running_loss += loss.item() * bs
-                        n_samples += bs
-
-                    train_loss = running_loss / \
-                        n_samples if n_samples else float("nan")
+                        train_loss_sum += float(loss.item())
+                        train_batches += 1
+                    train_loss = train_loss_sum / max(train_batches, 1)
 
                     net.eval()
-                    running_val_loss = 0.0
-                    n_val = 0
-
+                    val_loss_sum = 0.0
+                    val_batches = 0
                     with torch.no_grad():
-                        for (x,) in val_loader:
-                            x = x.to(device)
-                            xhat = net(x)
-                            loss = criterion(xhat, x)
+                        for (batch,) in val_loader:
+                            batch = batch.to(device)
+                            recon = net(batch)
+                            val_loss_sum += float(criterion(recon, batch).item())
+                            val_batches += 1
+                    val_loss = val_loss_sum / max(val_batches, 1)
 
-                            bs = x.size(0)
-                            running_val_loss += loss.item() * bs
-                            n_val += bs
-
-                    val_loss = running_val_loss / \
-                        n_val if n_val else float("nan")
                     duration = time.perf_counter() - t0
-
                     await train_metric_repository.create(
                         TrainMetric(
                             id=None,
@@ -206,23 +213,19 @@ class TrainUseCase:
 
                 net.eval()
                 val_scores: list[float] = []
-
                 with torch.no_grad():
-                    for (x,) in val_loader:
-                        x = x.to(device)
-                        val_scores.extend(net.predict(
-                            x).cpu().numpy().tolist())
-
+                    for (batch,) in val_loader:
+                        batch = batch.to(device)
+                        val_scores.extend(net.predict(batch).cpu().numpy().tolist())
                 if not val_scores:
                     with torch.no_grad():
-                        for (x,) in train_loader:
-                            x = x.to(device)
-                            val_scores.extend(net.predict(
-                                x).cpu().numpy().tolist())
-
+                        for (batch,) in train_loader:
+                            batch = batch.to(device)
+                            val_scores.extend(
+                                net.predict(batch).cpu().numpy().tolist()
+                            )
                 threshold = float(
-                    np.percentile(np.asarray(
-                        val_scores, dtype=np.float32), self._train_threshold_percentile)
+                    np.percentile(np.array(val_scores), self._train_threshold_percentile)
                 )
 
                 net.save(model.model_path)
@@ -245,19 +248,3 @@ class TrainUseCase:
                 await task_repository.update_status(task_uuid, TaskStatus.FAILED)
                 await model_repository.update_status(model_id, ModelStatus.FAILED)
                 raise
-
-    def _split_train_val(
-        self,
-        sequences: np.ndarray,
-        val_ratio: float,
-        seed: int | None = None,
-    ) -> tuple[np.ndarray, np.ndarray]:
-        rng = np.random.default_rng(seed)
-        n = len(sequences)
-        if n < 2:
-            return sequences, sequences
-        n_val = min(max(1, int(round(n * val_ratio))), n - 1)
-        perm = rng.permutation(n)
-        val_idx = perm[:n_val]
-        train_idx = perm[n_val:]
-        return sequences[train_idx], sequences[val_idx]

@@ -1,43 +1,64 @@
+from __future__ import annotations
+
 from collections import defaultdict
-from typing import List, Tuple
+from typing import List
 
 import numpy as np
 
 from app.domain.entities.audit_event import AuditEvent
-from app.domain.interfaces.create_sequences import CreateSequences
+from app.domain.entities.sequence_window import SequenceWindowDescriptor
 from app.domain.interfaces.encode_pipeline import EncodePipeline
 
 
-class CreateSequencesImpl(CreateSequences):
-    def __init__(self, encode_pipeline: EncodePipeline, seq_len: int) -> None:
-        self.encode_pipeline = encode_pipeline
-        self.seq_len = seq_len
+class CreateSequencesImpl:
+    def __init__(self, encode_pipeline: EncodePipeline) -> None:
+        self._encode_pipeline = encode_pipeline
 
-    def shape(self) -> Tuple[int, int]:
-        return (self.seq_len, self.encode_pipeline.shape())
+    def transform(
+        self,
+        events: List[AuditEvent],
+        seq_len: int,
+    ) -> tuple[np.ndarray, List[SequenceWindowDescriptor]]:
+        if seq_len < 2:
+            raise ValueError("seq_len must be at least 2 for sequence modeling.")
 
-    def transform(self, events: list[AuditEvent]) -> np.ndarray:
-        grouped: dict[str, List[AuditEvent]] = defaultdict(list)
+        if not events:
+            raise RuntimeError("No events to build sequences from.")
+
+        self._encode_pipeline.fit()
 
         for event in events:
-            self.encode_pipeline.transform(event)
-            if event.vec is None:
-                raise ValueError(
-                    f"EncodePipeline did not set vec for event: {event}"
-                )
-            grouped[event.user_username].append(event)
+            vec = self._encode_pipeline.transform(event)
+            event.vec = np.asarray(vec, dtype=np.float32)
 
-        sequences = []
+        by_user: dict[str, list[AuditEvent]] = defaultdict(list)
+        for event in events:
+            by_user[event.user_username].append(event)
 
-        for user_events in grouped.values():
+        rows: list[np.ndarray] = []
+        descriptors: list[SequenceWindowDescriptor] = []
+
+        for user, user_events in by_user.items():
             user_events.sort(key=lambda e: e.timestamp_as_datetime())
-            user_vecs = np.array([e.vec for e in user_events])
-
-            if len(user_vecs) < self.seq_len:
+            n = len(user_events)
+            if n < seq_len:
                 continue
+            for start in range(0, n - seq_len + 1):
+                window = user_events[start : start + seq_len]
+                stacked = np.stack([e.vec for e in window], axis=0)
+                rows.append(stacked.astype(np.float32, copy=False))
+                descriptors.append(
+                    SequenceWindowDescriptor(
+                        user_username=user,
+                        start_timestamp=window[0].timestamp_as_datetime(),
+                        end_timestamp=window[-1].timestamp_as_datetime(),
+                    )
+                )
 
-            for i in range(len(user_vecs) - self.seq_len + 1):
-                window = user_vecs[i:i + self.seq_len]
-                sequences.append(window)
+        if not rows:
+            raise RuntimeError(
+                "No sequences could be formed: need at least seq_len events "
+                f"({seq_len}) per at least one user after grouping."
+            )
 
-        return np.array(sequences)
+        return np.stack(rows, axis=0), descriptors

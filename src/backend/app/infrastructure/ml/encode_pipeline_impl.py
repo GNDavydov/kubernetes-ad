@@ -1,5 +1,7 @@
 import ipaddress
-from typing import Optional, Tuple
+import time
+from datetime import datetime
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 from sklearn.feature_extraction import FeatureHasher
@@ -72,12 +74,7 @@ class EncodePipelineImpl(EncodePipeline):
             RESPONSES_FLAGS                            # response (6)
         )
 
-        self._fit()
-
-    def shape(self) -> int:
-        return self.feature_dim
-
-    def _fit(self) -> None:
+    def fit(self):
         verbs_arr = np.array(self.verb_vocab).reshape(-1, 1)
         self.verb_encoder.fit(verbs_arr)
 
@@ -85,46 +82,56 @@ class EncodePipelineImpl(EncodePipeline):
         self.ua_encoder.fit(ua_arr)
         self.is_fit = True
 
-    def transform(self, event: AuditEvent) -> None:
+    def transform(self, event: AuditEvent) -> np.ndarray:
+        if not self.is_fit:
+            self.fit()
+
+        vectors: List[np.ndarray] = []
+        per_event_times: List[float] = []
+        total_start = time.perf_counter()
+        n_processed = 0
+
         vec = self._event_to_vector(event)
         if vec is None:
             raise RuntimeError("Событие не прошло валидацию")
-        event.vec = vec
+        return vec
 
     def _event_to_vector(self, event: AuditEvent) -> Optional[np.ndarray]:
-        self._clean_event(event)
+        e = self._clean_event(event)
+        if e is None:
+            return None
 
         parts = [
-            self._encode_time(event),
-            self._encode_verb(event),
-            self._encode_user(event),
-            self._encode_user_agent(event),
-            self._encode_resource(event),
-            self._encode_namespace(event),
-            self._encode_ip(event),
-            self._encode_response(event),
+            self._encode_time(e),
+            self._encode_verb(e),
+            self._encode_user(e),
+            self._encode_user_agent(e),
+            self._encode_resource(e),
+            self._encode_namespace(e),
+            self._encode_ip(e),
+            self._encode_response(e),
         ]
         return np.concatenate(parts)
 
     def _norm_str(self, s: Optional[str]) -> str:
         return (s or "unknown").lower().strip()
 
-    def _clean_event(self, event: AuditEvent) -> None:
-        event.timestamp = event.timestamp_as_datetime()
-        event.verb = self._norm_str(event.verb)
-        event.user_username = self._norm_str(event.user_username)
-        event.user_agent = self._norm_str(event.user_agent)
-        event.object_resource = self._norm_str(event.object_resource)
-        event.object_subresource = (
-            event.object_subresource or "").lower().strip()
-        event.object_namespace = (
-            event.object_namespace or "unknown").lower().strip()
-        event.response_code = int(
-            event.response_code) if event.response_code is not None else 0
-        event.source_ips = event.source_ips or []
+    def _clean_event(self, event: AuditEvent) -> Optional[Dict]:
+        ts = event.timestamp_as_datetime()
+        return {
+            "verb": self._norm_str(event.verb),
+            "user": self._norm_str(event.user_username),
+            "user_agent": self._norm_str(event.user_agent),
+            "resource": self._norm_str(event.object_resource),
+            "subresource": (event.object_subresource or "").lower().strip(),
+            "namespace": (event.object_namespace or "unknown").lower().strip(),
+            "code": int(event.response_code) if event.response_code is not None else 0,
+            "ips": event.source_ips or [],
+            "timestamp": ts
+        }
 
-    def _encode_time(self, event: AuditEvent) -> np.ndarray:
-        ts = event.timestamp
+    def _encode_time(self, e: Dict) -> np.ndarray:
+        ts: datetime = e["timestamp"]
         hour = ts.hour
         dow = ts.weekday()
         hour_sin = np.sin(2 * np.pi * hour / 24.0)
@@ -135,14 +142,14 @@ class EncodePipelineImpl(EncodePipeline):
         is_work = 1.0 if start <= hour < end else 0.0
         return np.array([hour_sin, hour_cos, dow_sin, dow_cos, is_work], dtype=float)
 
-    def _encode_verb(self, event: AuditEvent) -> np.ndarray:
-        v = event.verb
+    def _encode_verb(self, e: Dict) -> np.ndarray:
+        v = e["verb"]
         v_arr = np.array([v]).reshape(-1, 1)
         vec = self.verb_encoder.transform(v_arr)
         return vec.ravel()
 
-    def _encode_user(self, event: AuditEvent) -> np.ndarray:
-        username = event.user_username or "unknown"
+    def _encode_user(self, e: Dict) -> np.ndarray:
+        username = e["user"] or "unknown"
         hashed = self.user_hasher.transform([{username: 1.0}]).toarray()[0]
         is_sa = 1.0 if "system:serviceaccount" in username else 0.0
         is_system = 1.0 if username.startswith("system:") else 0.0
@@ -164,30 +171,30 @@ class EncodePipelineImpl(EncodePipeline):
             return "curl"
         return "other"
 
-    def _encode_user_agent(self, event: AuditEvent) -> np.ndarray:
-        ua_type = self._map_user_agent_type(event.user_agent)
+    def _encode_user_agent(self, e: Dict) -> np.ndarray:
+        ua_type = self._map_user_agent_type(e["user_agent"])
         ua_arr = np.array([ua_type]).reshape(-1, 1)
         vec = self.ua_encoder.transform(ua_arr)
         return vec.ravel()
 
-    def _encode_resource(self, event: AuditEvent) -> np.ndarray:
-        res = event.object_resource or "unknown"
-        sub = event.object_subresource or ""
+    def _encode_resource(self, e: Dict) -> np.ndarray:
+        res = e["resource"] or "unknown"
+        sub = e["subresource"] or ""
         token = f"{res}/{sub}" if sub else res
         hashed = self.resource_hasher.transform([{token: 1.0}]).toarray()[0]
         sensitive_flag = 1.0 if res in self.sensitive_resources else 0.0
         return np.concatenate([hashed.astype(float), np.array([sensitive_flag], dtype=float)])
 
-    def _encode_namespace(self, event: AuditEvent) -> np.ndarray:
-        ns = event.object_namespace
+    def _encode_namespace(self, e: Dict) -> np.ndarray:
+        ns = e["namespace"]
         is_kube_system = 1.0 if ns.startswith(
             "kube-") or ns == "kube-system" else 0.0
         is_prod = 1.0 if "prod" in ns or ns.endswith("-prod") else 0.0
         is_infra = 1.0 if "infra" in ns else 0.0
         return np.array([is_kube_system, is_prod, is_infra], dtype=float)
 
-    def _encode_ip(self, event: AuditEvent) -> np.ndarray:
-        ips = event.source_ips
+    def _encode_ip(self, e: Dict) -> np.ndarray:
+        ips = e["ips"]
         internal = 0.0
         cluster_internal = 0.0
         external = 0.0
@@ -205,8 +212,8 @@ class EncodePipelineImpl(EncodePipeline):
                 continue
         return np.array([internal, cluster_internal, external], dtype=float)
 
-    def _encode_response(self, event: AuditEvent) -> np.ndarray:
-        code = int(event.response_code) if event.response_code is not None else 0
+    def _encode_response(self, e: Dict) -> np.ndarray:
+        code = int(e["code"]) if e["code"] is not None else 0
         classes = np.zeros(5, dtype=float)
         if 100 <= code < 200:
             classes[0] = 1.0

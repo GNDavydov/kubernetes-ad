@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kubernetes Anomaly Detector</title>
+  <link rel="stylesheet" href="/ui/css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div id="login-view" class="view hidden">
+    <div class="card login-card">
+      <h1>Вход</h1>
+      <p class="muted">OAuth2: поле «username» — это email.</p>
+      <form id="login-form">
+        <label>Email <input type="email" name="email" required autocomplete="username" /></label>
+        <label>Пароль <input type="password" name="password" required autocomplete="current-password" /></label>
+        <button type="submit">Войти</button>
+        <p id="login-error" class="error"></p>
+      </form>
+    </div>
+  </div>
+
+  <div id="app-view" class="view hidden">
+    <header class="topbar">
+      <div class="brand">K8s Anomaly</div>
+      <nav class="nav">
+        <button type="button" data-nav="dashboard">Обзор</button>
+        <button type="button" data-nav="models">Модели</button>
+        <button type="button" data-nav="integrations">Интеграции</button>
+        <button type="button" data-nav="tasks">Задачи</button>
+        <button type="button" data-nav="users" id="nav-users" class="hidden">Пользователи</button>
+        <button type="button" data-nav="profile">Профиль</button>
+      </nav>
+      <button type="button" id="logout-btn" class="btn-secondary">Выход</button>
+    </header>
+    <main id="main"></main>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+  <script type="module" src="/ui/js/app.js"></script>
+</body>
+</html>

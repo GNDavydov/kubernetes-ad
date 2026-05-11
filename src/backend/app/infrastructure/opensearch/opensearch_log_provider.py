@@ -58,6 +58,7 @@ class OpenSearchLogProvider(LogProvider):
         size: Optional[int] = None,
     ) -> list[AuditEvent]:
         ts_field = self._timestamp_field
+
         filters: list[dict[str, Any]] = []
         if start_ts is not None or end_ts is not None:
             range_clause: dict[str, Any] = {"range": {ts_field: {}}}
@@ -67,21 +68,31 @@ class OpenSearchLogProvider(LogProvider):
                 range_clause["range"][ts_field]["lte"] = end_ts.isoformat()
             filters.append(range_clause)
 
-        body: dict[str, Any] = {
-            "sort": [{ts_field: {"order": "asc"}}],
+        query: dict[str, Any] = {
             "query": {"bool": {"filter": filters}},
+            "sort": [{ts_field: {"order": "asc"}}],
         }
-        if size is not None:
-            body["size"] = size
 
-        response = self.client.search(index=self.source_index, body=body)
-        hits = response.get("hits", {}).get("hits", [])
         events: list[AuditEvent] = []
-        for hit in hits:
+
+        for hit in helpers.scan(
+            self.client,
+            index=self.source_index,
+            query=query,
+            size=1000,          # безопасный батч
+            scroll="2m",        # держим контекст 2 минуты
+            preserve_order=True  # важно из-за sort
+        ):
             source = hit.get("_source", {})
             event = self._map_source_to_event(source, self._timestamp_field)
+
             if event is not None:
                 events.append(event)
+
+            # ограничение сверху (если нужно)
+            if size is not None and len(events) >= size:
+                break
+
         return events
 
     def save_anomalies(self, documents: list[dict[str, Any]]) -> None:
@@ -164,9 +175,11 @@ class OpenSearchLogProvider(LogProvider):
                 cls._read_nested(source, ["objectRef", "resource"], "unknown")
             ),
             object_subresource=cls._read_nested(
-                source, ["objectRef", "subresource"]),
+                source, ["objectRef", "subresource"]
+            ),
             object_namespace=cls._read_nested(
-                source, ["objectRef", "namespace"]),
+                source, ["objectRef", "namespace"]
+            ),
             response_code=cls._read_nested(source, ["responseStatus", "code"]),
             source_ips=[str(item) for item in source_ips],
         )

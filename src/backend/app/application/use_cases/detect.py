@@ -162,8 +162,7 @@ class DetectUseCase:
 
                 with torch.no_grad():
                     for batch_start in range(0, n, self._detect_batch_size):
-                        batch_end = min(
-                            batch_start + self._detect_batch_size, n)
+                        batch_end = min(batch_start + self._detect_batch_size, n)
                         batch = torch.from_numpy(
                             sequences[batch_start:batch_end]
                         ).float().to(device)

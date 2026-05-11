@@ -1,11 +1,11 @@
-from typing import Protocol
+from typing import Protocol, List
 
 from app.domain.entities.audit_event import AuditEvent
 
 
 class EncodePipeline(Protocol):
-    def transform(self, event: AuditEvent) -> None:
+    def fit(self) -> None:
         ...
 
-    def shape(self) -> int:
+    def transform(self, event: AuditEvent) -> List:
         ...
