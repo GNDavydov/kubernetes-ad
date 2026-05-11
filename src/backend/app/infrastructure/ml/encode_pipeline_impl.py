@@ -74,6 +74,9 @@ class EncodePipelineImpl(EncodePipeline):
 
         self._fit()
 
+    def shape(self) -> int:
+        return self.feature_dim
+
     def _fit(self) -> None:
         verbs_arr = np.array(self.verb_vocab).reshape(-1, 1)
         self.verb_encoder.fit(verbs_arr)

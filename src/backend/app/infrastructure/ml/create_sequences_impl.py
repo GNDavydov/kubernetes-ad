@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
 
@@ -12,6 +12,9 @@ class CreateSequencesImpl(CreateSequences):
     def __init__(self, encode_pipeline: EncodePipeline, seq_len: int) -> None:
         self.encode_pipeline = encode_pipeline
         self.seq_len = seq_len
+
+    def shape(self) -> Tuple[int, int]:
+        return (self.seq_len, self.encode_pipeline.shape())
 
     def transform(self, events: list[AuditEvent]) -> np.ndarray:
         grouped: dict[str, List[AuditEvent]] = defaultdict(list)

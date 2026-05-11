@@ -26,6 +26,13 @@ class Settings(BaseSettings):
     celery_broker_url: str = "redis://localhost:6379/0"
     celery_result_backend: str = "redis://localhost:6379/1"
 
+    opensearch_timeout_seconds: int = 30
+    opensearch_verify_ssl: bool = True
+    worker_fetch_size: int = 10000
+    detect_default_lookback_minutes: int = 60
+    train_batch_size: int = 64
+    train_learning_rate: float = 0.001
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
