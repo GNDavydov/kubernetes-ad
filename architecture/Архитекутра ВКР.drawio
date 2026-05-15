@@ -1,6 +1,6 @@
 <mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.5.2 Chrome/142.0.7444.265 Electron/39.6.1 Safari/537.36" version="29.5.2" pages="6">
   <diagram id="s-hBUVJa3hrcGQixUyEp" name="Новая архитектура">
-    <mxGraphModel dx="1588" dy="573" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1893" dy="802" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -37,13 +37,10 @@
             <mxPoint x="440" y="870" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="Z1_2IQU4q_UakZ4rY50p-14" parent="1" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" value="logs" vertex="1">
-          <mxGeometry height="30" width="60" x="180" y="780" as="geometry" />
+        <mxCell id="Z1_2IQU4q_UakZ4rY50p-14" parent="1" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" value="события аудита" vertex="1">
+          <mxGeometry height="30" width="80" x="160" y="780" as="geometry" />
         </mxCell>
-        <mxCell id="Z1_2IQU4q_UakZ4rY50p-15" parent="1" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" value="logs" vertex="1">
-          <mxGeometry height="30" width="60" x="410" y="760" as="geometry" />
-        </mxCell>
-        <mxCell id="Z1_2IQU4q_UakZ4rY50p-16" parent="1" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" value="anomaly" vertex="1">
+        <mxCell id="Z1_2IQU4q_UakZ4rY50p-16" parent="1" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" value="Аномалии" vertex="1">
           <mxGeometry height="30" width="60" x="413.5" y="830" as="geometry" />
         </mxCell>
         <mxCell id="Z1_2IQU4q_UakZ4rY50p-17" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Администратор" vertex="1">
@@ -67,22 +64,25 @@
             <mxPoint x="450" y="870" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="Z1_2IQU4q_UakZ4rY50p-26" edge="1" parent="1" source="Z1_2IQU4q_UakZ4rY50p-4" style="endArrow=classic;html=1;rounded=0;exitX=0.75;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" target="Z1_2IQU4q_UakZ4rY50p-21" value="">
+        <mxCell id="Z1_2IQU4q_UakZ4rY50p-26" edge="1" parent="1" source="Z1_2IQU4q_UakZ4rY50p-4" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" target="Z1_2IQU4q_UakZ4rY50p-21" value="">
           <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <Array as="points">
+              <mxPoint x="750" y="810" />
+            </Array>
             <mxPoint x="670" y="794" as="sourcePoint" />
             <mxPoint x="670" y="754" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="Z1_2IQU4q_UakZ4rY50p-27" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="tasks" vertex="1">
-          <mxGeometry height="30" width="60" x="520" y="630" as="geometry" />
+        <mxCell id="Z1_2IQU4q_UakZ4rY50p-27" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Задачи" vertex="1">
+          <mxGeometry height="30" width="80" x="500" y="630" as="geometry" />
         </mxCell>
-        <mxCell id="Z1_2IQU4q_UakZ4rY50p-28" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="tasks" vertex="1">
-          <mxGeometry height="30" width="60" x="520" y="740" as="geometry" />
+        <mxCell id="Z1_2IQU4q_UakZ4rY50p-28" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Задачи" vertex="1">
+          <mxGeometry height="30" width="60" x="500" y="740" as="geometry" />
         </mxCell>
-        <mxCell id="Z1_2IQU4q_UakZ4rY50p-29" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="results" vertex="1">
-          <mxGeometry height="30" width="60" x="690" y="710" as="geometry" />
+        <mxCell id="Z1_2IQU4q_UakZ4rY50p-29" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Результаты&lt;div&gt;выполнения задач&lt;/div&gt;" vertex="1">
+          <mxGeometry height="30" width="120" x="750" y="740" as="geometry" />
         </mxCell>
-        <mxCell id="Z1_2IQU4q_UakZ4rY50p-34" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Kubernetes cluster" vertex="1">
+        <mxCell id="Z1_2IQU4q_UakZ4rY50p-34" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Kubernetes-кластер" vertex="1">
           <mxGeometry height="30" width="125" x="-17.5" y="710" as="geometry" />
         </mxCell>
         <mxCell id="Z1_2IQU4q_UakZ4rY50p-36" edge="1" parent="1" source="Z1_2IQU4q_UakZ4rY50p-17" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="Z1_2IQU4q_UakZ4rY50p-22" value="">
@@ -103,8 +103,11 @@
         <mxCell id="Z1_2IQU4q_UakZ4rY50p-42" edge="1" parent="1" source="Z1_2IQU4q_UakZ4rY50p-22" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;startArrow=classic;startFill=1;" target="Z1_2IQU4q_UakZ4rY50p-21">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="Z1_2IQU4q_UakZ4rY50p-43" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="state" vertex="1">
+        <mxCell id="Z1_2IQU4q_UakZ4rY50p-43" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Состояние&lt;div&gt;системы&lt;/div&gt;" vertex="1">
           <mxGeometry height="30" width="60" x="640" y="570" as="geometry" />
+        </mxCell>
+        <mxCell id="a99PE9WHModYecSn0AC1-1" parent="1" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" value="события аудита" vertex="1">
+          <mxGeometry height="30" width="80" x="403.5" y="760" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
