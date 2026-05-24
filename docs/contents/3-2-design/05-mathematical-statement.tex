@@ -42,7 +42,6 @@
 \begin{equation}\label{eq:event_structure}
     e_t = (v_t, u_t, ua_t, r_t, sr_t, ns_t, c_t, ip_t, t_t),
 \end{equation}
-
 где:
 \begin{itemize}
     \item $v_t$ — значение поля \texttt{verb}, определяющее тип операции, выполняемой пользователем или сервисным аккаунтом над ресурсом Kubernetes (например, \texttt{get}, \texttt{list}, \texttt{create}, \texttt{update}, \texttt{delete}, \texttt{watch});
@@ -63,8 +62,9 @@
 \begin{equation}\label{encoding_function}
     \Phi : \mathcal{E} \rightarrow \mathbb{R}^d,
 \end{equation}
+где $\mathcal{E}$ — множество всех возможных событий audit-лога. 
 
-где $\mathcal{E}$ — множество всех возможных событий audit-лога. В результате формируется последовательность векторов признаков для каждого события $e_t$, определяемая формулой~\eqref{feature_vector}.
+В результате формируется последовательность векторов признаков для каждого события $e_t$, определяемая формулой~\eqref{feature_vector}.
 
 \begin{equation}\label{feature_vector}
     x_t = \Phi(e_t) \in \mathbb{R}^d.
@@ -91,12 +91,7 @@ $$\mathcal{A} = \{ A_\alpha \},$$
 Для каждой архитектуры $A_\alpha$ определяется множество параметров модели $\theta$. Модель обозначим как
 
 $$f_{\alpha,\theta} : \mathbb{R}^d \rightarrow \mathbb{R},$$
-
-где
-
-$\alpha$ - структура сети,
-
-$\theta$ - обучаемые параметры.
+где $\alpha$ - структура сети; \\ $\theta$ - обучаемые параметры.
 
 \subsubsection{Выбор параметров нейронной сети}
 
@@ -115,7 +110,6 @@ $\theta$ - обучаемые параметры.
 \begin{equation}\label{optim_params}
     \theta^*(\alpha) = \arg\min_{\theta} \frac{1}{|\mathcal{X}_{val}|} \sum_{x \in \mathcal{X}_{val}} \mathcal{F}(x; \alpha, \theta),
 \end{equation}
-
 где $\mathcal{F}$ — функция потерь, зависящая от выбранного типа модели (например, ошибка реконструкции Autoencoder \cite{AE}).
 
 Результатом решения подзадачи является оптимальный набор параметров модели $\theta^*(\alpha)$.
@@ -150,7 +144,6 @@ $\mathcal{Y}_{test} = \{y_i\}$, $y_i \in \{0,1\}$.
 \begin{equation}\label{indicators_anomaly}
     S_\alpha = \{ s_\alpha(x_1), \dots, s_\alpha(x_n) \},
 \end{equation}
-
 где $s_{\alpha}(x_i) = f_{\alpha,\theta^*(\alpha)}(x_i)$ - показатель аномальности события
 
 Качество детекции оценивается с использованием метрики PR-AUC, определяемой формулой~(\ref{pr_auc}).
